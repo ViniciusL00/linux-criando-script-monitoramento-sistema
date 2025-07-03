@@ -316,3 +316,163 @@ minha_funcao "um" "dois"
 Esse módulo focou em **monitoramento de rede e conectividade**, ensinando a usar `ping` e `curl` para validar se a máquina está conectada e se uma aplicação está acessível. Também mostrou **como organizar scripts com funções**, **usar parâmetros** e **comentar de forma eficiente** para tornar o código **modular e legível**.
 
 ---
+
+# 📦 Módulo 3: Gerenciando Discos e Armazenamento
+
+> Um mergulho no uso de disco, sistemas de arquivos e como monitorar tudo isso via Shell Script!
+
+---
+
+## 📊 Verificando o Uso de Disco
+
+### 🔍 Comando `df`
+
+- Exibe informações sobre o **uso de disco**.
+- Colunas importantes:
+  - `Filesystem`: nome do sistema de arquivos
+  - `1K-blocks`: espaço total (em blocos de 1KB)
+  - `Used`: espaço usado
+  - `Available`: espaço disponível
+  - `Use%`: porcentagem utilizada
+  - `Mounted on`: ponto de montagem
+
+### 🧠 Exemplo:
+```
+Filesystem     1K-blocks    Used     Available  Use% Mounted on
+/dev/sdc       1055762868   1910072  1000149324   1%     /
+```
+
+---
+
+### 📏 Tornando legível com `-h` (human readable)
+```
+df -h
+```
+➡️ Exibe tamanhos em GB, MB etc.
+
+### 📜 Exibindo todos os sistemas de arquivos:
+```
+df -a
+```
+
+### 🧱 Exibindo tipos de sistemas de arquivos:
+```
+df -T
+```
+
+### 📌 Inodes (metadados dos arquivos)
+```
+df -i
+```
+- Inodes são estruturas que guardam metadados dos arquivos (permissões, dono, timestamps).
+- Sem inodes livres = não dá pra criar novos arquivos, mesmo com espaço.
+
+### 📊 Informações gerais do disco:
+```
+df --total
+```
+- Mostra totais gerais no final da tabela.
+
+### 🧪 Combinação de opções:
+```
+df -h --total
+```
+
+---
+
+## 💻 Adicionando Monitoramento de Disco no Script
+
+### ✅ Lógica de monitoramento:
+
+```bash
+df -h | grep -v "snapfuse" | awk '$5+0 > 1 {print $1 " esta com " $5 " de uso."}'
+```
+
+- Filtra sistemas com mais de 1% de uso.
+- Ignora partições Snap.
+- Exibe mensagem com o nome da partição e o uso.
+
+### ✍️ Dentro da função `monitorando_disco`:
+
+```bash
+function monitorando_disco() {
+    echo "$(date)" >> $LOG_DIR/monitoramento_disco.txt
+    df -h | grep -v "snapfuse" | awk '$5+0 > 1 {print $1 " esta com " $5 " de uso."}' >> $LOG_DIR/monitoramento_disco.txt
+    echo "Uso de disco no diretório principal:" >> $LOG_DIR/monitoramento_disco.txt
+    du -sh /home/vinic >> $LOG_DIR/monitoramento_disco.txt
+}
+```
+
+---
+
+## 📁 Mergulhando em Sistemas de Arquivo
+
+### 🗂️ O que é?
+> Estrutura que organiza, armazena e gerencia dados nos dispositivos de armazenamento.
+
+### 🔧 Componentes:
+
+- **Diretórios e Arquivos**
+- **Blocos de dados**
+- **Metadados**
+- **Tabela de alocação**
+
+### 📚 Tipos comuns:
+
+| Tipo   | Características |
+|--------|------------------|
+| FAT32  | Simples, arquivos até 4GB |
+| NTFS   | Avançado, comum no Windows |
+| EXT4   | Comum no Linux |
+| APFS   | Apple, otimizado pra SSD |
+| exFAT  | Portátil, para dispositivos móveis |
+
+### 🔐 Funções principais:
+
+- Armazenar, organizar e gerenciar espaço
+- Controle de acesso com permissões
+
+### 🛡️ Recursos úteis:
+
+- **Journaling**
+- **Permissões**
+- **Compressão**
+- **Criptografia**
+
+---
+
+## 📂 Verificando Espaço em Diretórios Específicos
+
+### 🧪 Comando `du` (Disk Usage)
+
+```bash
+du -sh /home/vinic
+```
+➡️ Mostra o uso total do diretório `/home/vinic` de forma legível.
+
+### ✅ Incorporando no script:
+
+```bash
+echo "Uso de disco no diretório principal:" >> $LOG_DIR/monitoramento_disco.txt
+du -sh /home/vinic >> $LOG_DIR/monitoramento_disco.txt
+```
+
+---
+
+## 🔧 Opções úteis do `du`
+
+| Opção               | Descrição |
+|---------------------|----------|
+| `-h`                | Tamanhos legíveis (KB, MB, GB) |
+| `-s`                | Mostra apenas o total |
+| `-a`                | Lista arquivos e diretórios |
+| `-c`                | Soma e mostra total geral |
+| `--max-depth=N`     | Limita profundidade da listagem |
+| `-d N`              | Alternativa ao `--max-depth` |
+| `--time`            | Mostra data de modificação |
+| `-x`                | Restringe ao sistema de arquivos atual |
+| `--exclude=PATTERN` | Exclui arquivos/diretórios por padrão |
+
+---
+
+📁 **Com isso, conseguimos monitorar o uso do disco e diretórios no Linux de forma prática, clara e eficiente.**

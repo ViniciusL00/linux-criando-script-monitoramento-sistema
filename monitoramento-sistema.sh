@@ -1,3 +1,6 @@
+#!/bin/bash
+
+
 LOG_DIR="monitoramento_sistema"
 mkdir -p $LOG_DIR
 
@@ -22,9 +25,18 @@ function monitorando_rede() {
         fi
 }
 
+#Função para monitorar o uso de disco.
+function monitorando_disco() {
+        echo "$(date)" >> $LOG_DIR/monitoramento_disco.txt
+        df -h | grep -v "snapfuse" | awk '$5+0 > 1 {print $1 " esta com " $5 " de uso."}' >> $LOG_DIR/monitoramento_disco.txt
+        echo "Uso de disco no diretorio principal:" >> $LOG_DIR/monitoramento_disco.txt
+        du -sh /home/vinic >> $LOG_DIR/monitoramento_disco.txt
+}
+
 function executar_monitoramento() {
         monitorando_logs
         monitorando_rede
+        monitorando_disco
 }
 
 executar_monitoramento
