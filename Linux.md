@@ -589,3 +589,171 @@ Após rodar o script, o relatório `monitoramento_hardware.txt` conterá:
 🧠 **Dica:** Rodar esse script regularmente te dá uma visão real do desempenho da máquina. Ajuda muito a identificar lentidões, consumo exagerado ou possíveis gargalos! 🚨
 
 ---
+
+# 🛠️ Módulo 5: Gerenciando Serviços no Linux
+
+## 🎯 Objetivo
+Automatizar a execução do script de monitoramento usando o **systemd** em vez do cron.
+
+---
+
+## 📁 Movendo e Configurando o Script
+
+1. **Mover o script para um diretório acessível pelo systemd:**
+   ```bash
+   sudo mv monitoramento-sistema.sh /usr/local/bin/monitoramento-sistema.sh
+   ```
+
+2. **Dar permissão de execução ao script:**
+   ```bash
+   sudo chmod +x /usr/local/bin/monitoramento-sistema.sh
+   ```
+
+---
+
+## ⚙️ Criando o Serviço
+
+1. **Acessar o diretório de serviços:**
+   ```bash
+   cd /etc/systemd/system
+   ```
+
+2. **Criar o arquivo do serviço:**
+   ```bash
+   sudo vim monitoramento-sistema.service
+   ```
+
+3. **Conteúdo do serviço:**
+   ```ini
+   [Unit]
+   Description=Script de Monitoramento do Sistema
+   Wants=monitoramento-sistema.timer
+
+   [Service]
+   Type=oneshot
+   ExecStart=/usr/local/bin/monitoramento-sistema.sh
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+---
+
+## ⏱️ Criando o Timer
+
+1. **Criar o arquivo do timer:**
+   ```bash
+   sudo vim monitoramento-sistema.timer
+   ```
+
+2. **Conteúdo do timer:**
+   ```ini
+   [Unit]
+   Description=Timer para execução periódica do Monitoramento do Sistema
+
+   [Timer]
+   OnCalendar=*:0/15
+   Persistent=true
+
+   [Install]
+   WantedBy=timers.target
+   ```
+
+---
+
+## 🔧 Ativando e Gerenciando com systemctl
+
+1. **Recarregar o systemd após alteração:**
+   ```bash
+   sudo systemctl daemon-reload
+   ```
+
+2. **Habilitar o timer para iniciar no boot:**
+   ```bash
+   sudo systemctl enable monitoramento-sistema.timer
+   ```
+
+3. **Iniciar o timer imediatamente:**
+   ```bash
+   sudo systemctl start monitoramento-sistema.timer
+   ```
+
+4. **Verificar status do timer:**
+   ```bash
+   sudo systemctl status monitoramento-sistema.timer
+   ```
+
+5. **Verificar os relatórios:**
+   ```bash
+   cd /monitoramento-sistema
+   ls
+   cat monitoramento_hardware.txt
+   ```
+
+6. **Verificar logs de execução do serviço:**
+   ```bash
+   sudo journalctl -u monitoramento-sistema.service
+   ```
+
+---
+
+## ❌ Parar, Desabilitar e Remover Serviços
+
+1. **Parar o serviço:**
+   ```bash
+   sudo systemctl stop monitoramento-sistema.timer
+   ```
+
+2. **Desabilitar no boot:**
+   ```bash
+   sudo systemctl disable monitoramento-sistema.timer
+   ```
+
+3. **Remover arquivos do serviço:**
+   ```bash
+   sudo rm /etc/systemd/system/monitoramento-sistema.timer
+   sudo rm /etc/systemd/system/monitoramento-sistema.service
+   ```
+
+4. **Recarregar o systemd:**
+   ```bash
+   sudo systemctl daemon-reload
+   ```
+
+---
+
+## 📚 Conceitos de Serviços no Linux
+
+### O que é um serviço (daemon)?
+
+- Processo em segundo plano
+- Sem interface gráfica
+- Independente de usuário logado
+- Automatizado no boot
+
+### Tipos de serviços
+
+- **System Services**: essenciais para o SO
+- **Application Services**: criados por usuários (como nosso script)
+
+### Exemplos:
+
+- Apache/Nginx (web)
+- SSH Daemon
+- MySQL/PostgreSQL
+- NetworkManager
+- System Logging
+
+---
+
+## 🌀 Systemd: Características
+
+- Gerencia inicialização e serviços
+- Usa arquivos `.service`, `.timer`, `.socket`, `.target`, etc.
+- Permite execução paralela no boot
+- Agendamento de tarefas com `timer`
+- Logs centralizados com `journald`
+- Controle de CPU, memória e isolamento de processos
+- Permite reload sem reiniciar máquina
+
+---
