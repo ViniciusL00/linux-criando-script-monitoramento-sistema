@@ -33,10 +33,21 @@ function monitorando_disco() {
         du -sh /home/vinic >> $LOG_DIR/monitoramento_disco.txt
 }
 
+#Função para monitorar o uso de memória ram
+function monitorando_hardware() {
+        echo "$(date)" >> $LOG_DIR/monitoramento_hardware.txt
+        free -h | grep Mem | awk '{print "Memória RAM Total:" $2 ", Usado:" $3 ", Livre:" $4}' >> $LOG_DIR/monitoramento_hardware.txt
+        #Monitorando o uso da CPU
+        top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print "Uso da CPU: " 100 - $1 " "%"}' >> $LOG_DIR/monitoramento_hardware.txt
+        echo "Operações de leitura e escrita:" >> $LOG_DIR/monitoramento_hardware.txt
+        iostat | grep -E "Device|^sda|^sdb|^sdc" | awk '{print $1, $2, $3, $4}' >> $LOG_DIR/monitoramento_hardware.txt
+}
+
 function executar_monitoramento() {
         monitorando_logs
         monitorando_rede
         monitorando_disco
+        monitorando_hardware
 }
 
 executar_monitoramento

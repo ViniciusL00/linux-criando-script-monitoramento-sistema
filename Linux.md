@@ -338,8 +338,8 @@ Esse módulo focou em **monitoramento de rede e conectividade**, ensinando a usa
 
 ### 🧠 Exemplo:
 ```
-Filesystem     1K-blocks    Used     Available  Use% Mounted on
-/dev/sdc       1055762868   1910072  1000149324   1%     /
+Filesystem     1K-blocks      Used       Available    Use%    Mounted on
+/dev/sdc       1055762868     1910072    1000149324    1%         /
 ```
 
 ---
@@ -476,3 +476,116 @@ du -sh /home/vinic >> $LOG_DIR/monitoramento_disco.txt
 ---
 
 📁 **Com isso, conseguimos monitorar o uso do disco e diretórios no Linux de forma prática, clara e eficiente.**
+
+---
+
+# 📊 Módulo 4: Monitorando o Hardware do Sistema
+
+## 🧠 Monitoramento de Memória RAM
+
+A memória **RAM** é onde os programas em execução ficam armazenados temporariamente. Quando o PC é desligado, tudo nela se perde.
+
+### ✅ Comando `free -h`
+Exibe o uso da memória de forma legível:
+
+```
+free -h
+```
+
+### 📌 Saída relevante:
+- **Mem:** Memória RAM
+- **Total:** Quantidade total de memória
+- **Used:** Quantidade usada
+- **Free:** Quantidade livre
+- **Shared:** Memória compartilhada
+- **Buff/Cache:** Memória usada para cache e buffer
+- **Available:** Quantidade realmente disponível para uso
+
+### 📤 No script:
+```bash
+free -h | grep Mem | awk '{print "Memoria RAM Total: " $2 ", Usada: " $3 ", Livre: " $4}'
+```
+
+---
+
+## 🧮 Tipos de Memória no Computador
+
+| Tipo            | Velocidade     | Custo por GB   | Capacidade   | Volátil? |
+|-----------------|----------------|----------------|--------------|----------|
+| Cache           | ⚡⚡⚡ Altíssima | 💸💸💸 Muito alto| KB - MB      | Sim      |
+| RAM             | ⚡ Muito alta   | 💸 Alto         | GB           | Sim      |
+| SSD (NVMe)      | 🚀 Alta        | 💸 Alto         | GB - TB      | Não      |
+| SSD (SATA)      | 🚀 Moderada    | 💸 Moderado     | GB - TB      | Não      |
+| HDD             | 🐢 Lenta       | 💰 Baixo        | GB - TB      | Não      |
+| Pendrive / Flash| 🐌 Variável     | 💰 Moderado     | GB - TB      | Não      |
+| Memória Virtual | 🐢 Depende do disco | 🆓 Sem custo | Depende do disco | Não  |
+
+---
+
+## 🧮 Unidade GiB vs GB
+
+| Unidade | Tamanho em bytes     | Base |
+|---------|----------------------|------|
+| **1 GiB** | 1.073.741.824 bytes | Binária (2³⁰) |
+| **1 GB**  | 1.000.000.000 bytes | Decimal (10⁹) |
+
+---
+
+## ⚙️ Monitoramento de CPU
+
+### ✅ Comando `top -bn1`
+Modo batch, execução única:
+
+```bash
+top -bn1
+```
+
+### 🔍 Extraindo uso da CPU
+Pegamos o valor de ociosidade da CPU (`id`) e subtraímos de 100 para saber o uso real:
+
+```bash
+top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print "Uso da CPU: " 100 - $1 "%"}'
+```
+
+---
+
+## 📁 Monitoramento de Leitura e Escrita em Disco
+
+### ✅ Comando `iostat`
+Mostra a atividade dos dispositivos de armazenamento:
+
+```bash
+iostat
+```
+
+### 🔍 Filtro para dispositivos relevantes (sda, sdb, sdc):
+```bash
+iostat | grep -E "Device|^sda|^sdb|^sdc" | awk '{print $1, $2, $3, $4}'
+```
+
+---
+
+## 📝 Script Final (Trecho do monitorando_hardware)
+
+```bash
+function monitorando_hardware() { 
+    echo "$(date)" >> $LOG_DIR/monitoramento_hardware.txt
+    free -h | grep Mem | awk '{print "Memoria RAM Total: " $2 ", Usada: " $3 ", Livre: " $4}' >> $LOG_DIR/monitoramento_hardware.txt
+    top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print "Uso da CPU: " 100 - $1 "%"}' >> $LOG_DIR/monitoramento_hardware.txt
+    echo "Operacoes de leitura e escrita:" >> $LOG_DIR/monitoramento_hardware.txt
+    iostat | grep -E "Device|^sda|^sdb|^sdc" | awk '{print $1, $2, $3, $4}' >> $LOG_DIR/monitoramento_hardware.txt
+}
+```
+
+---
+
+## ✅ Resultado
+Após rodar o script, o relatório `monitoramento_hardware.txt` conterá:
+- Data/hora da execução
+- Uso atual da memória RAM
+- Uso da CPU
+- Operações de leitura e escrita por dispositivo
+
+🧠 **Dica:** Rodar esse script regularmente te dá uma visão real do desempenho da máquina. Ajuda muito a identificar lentidões, consumo exagerado ou possíveis gargalos! 🚨
+
+---
